@@ -1,0 +1,16 @@
+capabilities:
+  cluster_vip:
+    description: Virtual IP address of the installed Harvester cluster.
+    value: { get_input: cluster_vip }
+
+  harvester_version:
+    description: Installed Harvester release version.
+    value: { get_input: harvester_version }
+
+  kubeconfig_secret_name:
+    description: Secret key name in DAP Secret Store containing the cluster kubeconfig.
+    value: { concat: [ "harvester-kubeconfig-", { get_input: cluster_vip } ] }
+
+  node_inventory:
+    description: Enriched node inventory containing assigned management IPs and cluster roles.
+    value: { get_attribute: [ primary_node, node_details ] }

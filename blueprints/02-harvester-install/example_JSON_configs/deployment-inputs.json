@@ -1,0 +1,30 @@
+{
+  "node_inventory": [
+    {
+      "node_id": "hv-node-01",
+      "service_tag": "ABC1234",
+      "idrac_address": "10.1.140.101",
+      "mgmt_mac": "52:54:00:6b:13:e2",
+      "role": "management"
+    },
+    {
+      "node_id": "hv-node-02",
+      "service_tag": "ABC1235",
+      "idrac_address": "10.1.140.102",
+      "mgmt_mac": "52:54:00:69:d5:92",
+      "role": "management"
+    }
+  ],
+  "harvester_version": "v1.8.2",
+  "cluster_vip": "10.1.140.20",
+  "mgmt_vlan_id": 176,
+  "gateway_ip": "10.1.140.1",
+  "dns_servers": [
+    "10.1.10.30",
+    "10.1.10.40"
+  ],
+  "fileserver_url": "http://10.1.140.10:8080",
+  "cluster_token_secret_key": "harvester_cluster_token",
+  "node_password_secret_key": "harvester_node_password",
+  "ssh_public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC3... operator@ati.gov.et"
+}

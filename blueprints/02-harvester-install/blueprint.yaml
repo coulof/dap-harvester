@@ -1,0 +1,114 @@
+tosca_definitions_version: dell_1_1
+
+description: >
+  DAP Blueprint for automated unattended installation of SUSE Virtualization (Harvester) v1.8.2 cluster across baremetal PowerEdge nodes.
+
+imports:
+  - dell/types/types.yaml
+  - plugin:utilities-plugin?version= >=3.1.4.0,<4.0.0.0
+  - plugin:rest-plugin?version= >=2.0.0.0,<3.0.0.0
+  - plugin:redfish-plugin?version= >=1.0.0.0,<2.0.0.0
+  - plugin:kubernetes-plugin?version= >=2.12.0.0,<3.0.0.0
+  - inputs.yaml
+  - capabilities.yaml
+
+node_templates:
+
+  # --- C2 Idempotency Guard ---
+  # Checks whether target cluster VIP API is already healthy before proceeding.
+  idempotency_guard:
+    type: dell.nodes.rest.Requests
+    properties:
+      hosts:
+        - { get_input: cluster_vip }
+      port: 443
+      ssl: true
+      verify: false
+      path: "/ping"
+      method: GET
+      expected_status_code: [200, 404]
+
+  # --- Harvester Config Stager ---
+  # Renders unattended install configs using utilities-plugin template processing.
+  config_stager:
+    type: dell.nodes.utilities.Template
+    properties:
+      template_file: "provisioning/harvester-config/config-create.yaml"
+      variables:
+        cluster_vip: { get_input: cluster_vip }
+        cluster_token: { get_secret: { get_input: cluster_token_secret_key } }
+        node_password: { get_secret: { get_input: node_password_secret_key } }
+        mgmt_vlan_id: { get_input: mgmt_vlan_id }
+        gateway_ip: { get_input: gateway_ip }
+        dns_servers: { get_input: dns_servers }
+        ssh_public_key: { get_input: ssh_public_key }
+    relationships:
+      - type: dell.relationships.depends_on
+        target: idempotency_guard
+
+  # --- Primary Node (CREATE Mode) Boot ---
+  primary_node:
+    type: dell.nodes.redfish.Server
+    properties:
+      connection_config:
+        host: { get_input: cluster_vip }
+        insecure: true
+      boot_override:
+        target: "Pxe"
+        mode: "UEFI"
+        enabled: "Once"
+      power_state: "PowerCycle"
+    relationships:
+      - type: dell.relationships.depends_on
+        target: config_stager
+
+  # --- Cluster API Readiness Wait ---
+  cluster_api_wait:
+    type: dell.nodes.rest.Requests
+    properties:
+      hosts:
+        - { get_input: cluster_vip }
+      port: 443
+      ssl: true
+      verify: false
+      path: "/ping"
+      method: GET
+      expected_status_code: [200]
+    interfaces:
+      dell.interfaces.lifecycle:
+        create:
+          max_retries: 30
+          retry_interval: 10
+    relationships:
+      - type: dell.relationships.depends_on
+        target: primary_node
+
+  # --- Kubeconfig Secret Registration ---
+  kubeconfig_secret:
+    type: dell.nodes.kubernetes.resources.Secret
+    properties:
+      use_external_resource: false
+      resource_config:
+        metadata:
+          name: { concat: [ "harvester-kubeconfig-", { get_input: cluster_vip } ] }
+          namespace: "default"
+        type: "Opaque"
+    relationships:
+      - type: dell.relationships.depends_on
+        target: cluster_api_wait
+
+  # --- Secondary Nodes (JOIN Mode) Boot ---
+  secondary_nodes:
+    type: dell.nodes.redfish.Server
+    properties:
+      connection_config:
+        host: { get_input: cluster_vip }
+        insecure: true
+      boot_override:
+        target: "Pxe"
+        mode: "UEFI"
+        enabled: "Once"
+      power_state: "PowerCycle"
+    relationships:
+      - type: dell.relationships.depends_on
+        target: cluster_api_wait

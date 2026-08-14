@@ -1,0 +1,7 @@
+changelog:
+  - version: 1.0.0
+    date: 2026-08-14
+    changes:
+      - "Initial release of Harvester v1.8.2 installation blueprint."
+      - "Scriptless architecture utilizing DAP redfish, rest, utilities, and kubernetes plugins."
+      - "Idempotency guard enforcing C2 non-destructive cluster node membership check."
