@@ -1,0 +1,46 @@
+version: "3"
+
+# Taskfile for DAP Harvester Stack Air-Gap Staging
+# Uses Hauler 2.x to fetch, package, load, and serve air-gapped artifacts.
+
+vars:
+  MANIFEST: hauler-manifest.yaml
+  ARCHIVE: airgap.tar.zst
+  REGISTRY_PORT: 5000
+  FILESERVER_PORT: 8080
+
+tasks:
+  sync:
+    desc: "Download images, charts, and files defined in manifest"
+    cmds:
+      - hauler store sync --filename {{.MANIFEST}}
+
+  save:
+    desc: "Package local Hauler store into archive"
+    cmds:
+      - hauler store save --filename {{.ARCHIVE}}
+
+  load:
+    desc: "Load archive into local Hauler store"
+    cmds:
+      - hauler store load --filename {{.ARCHIVE}}
+
+  serve-registry:
+    desc: "Start Hauler OCI registry"
+    cmds:
+      - hauler store serve registry --port {{.REGISTRY_PORT}}
+
+  serve-fileserver:
+    desc: "Start Hauler HTTP fileserver"
+    cmds:
+      - hauler store serve fileserver --port {{.FILESERVER_PORT}}
+
+  info:
+    desc: "Display contents of local Hauler store"
+    cmds:
+      - hauler store info
+
+  clean:
+    desc: "Remove generated archives"
+    cmds:
+      - rm -f {{.ARCHIVE}}

@@ -1,0 +1,25 @@
+# dnsmasq DHCP/TFTP configuration for Harvester PXE boot
+# CRITICAL: DHCP option 3 (routers) MUST be provided; Harvester installation fails without a default gateway.
+
+interface=eth0
+dhcp-range=10.100.0.100,10.100.0.199,255.255.255.0,12h
+
+# DHCP option 3: default gateway / routers (MANDATORY)
+dhcp-option=3,10.100.0.1
+
+# DHCP option 6: DNS servers
+dhcp-option=6,10.100.0.1
+
+# PXE & iPXE boot options
+enable-tftp
+tftp-root=/var/lib/tftpboot
+
+# Bootloader selection based on client architecture
+dhcp-match=set:efi,option:client-arch,7
+dhcp-match=set:efi,option:client-arch,9
+dhcp-match=set:ipxe,175
+
+# Point to iPXE bootloader or chainloaded iPXE script
+dhcp-boot=tag:ipxe,http://10.100.0.10:8080/ipxe-create
+dhcp-boot=tag:efi,ipxe.efi
+dhcp-boot=undionly.kpxe

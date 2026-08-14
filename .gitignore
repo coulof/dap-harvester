@@ -1,0 +1,14 @@
+# macOS metadata
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Air-gap archives & temporary outputs
+*.tar.zst
+_hauls/
+
+# Editor / IDE settings
+.idea/
+.vscode/
+*.swp
+*.swo

@@ -1,0 +1,8 @@
+#!ipxe
+# iPXE script for Harvester v1.8.2 CREATE mode (Initial cluster node)
+
+set fileserver http://${FILESERVER_IP}:${FILESERVER_PORT}
+
+kernel ${fileserver}/harvester-v1.8.2-vmlinuz-amd64 initrd=harvester-v1.8.2-initrd-amd64 ip=dhcp rd.cos.disable rd.net.dhcp.retry=3 rd.noverifyssl net.ifnames=1 root=live:${fileserver}/harvester-v1.8.2-rootfs-amd64.squashfs console=tty1 harvester.install.automatic=true harvester.install.config_url=${fileserver}/harvester-config/config-create.yaml
+initrd ${fileserver}/harvester-v1.8.2-initrd-amd64
+boot

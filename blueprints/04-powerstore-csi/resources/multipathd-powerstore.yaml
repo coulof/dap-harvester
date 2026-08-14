@@ -1,0 +1,76 @@
+apiVersion: node.harvesterhci.io/v1beta1
+kind: CloudInit
+metadata:
+  name: multipathd-start
+spec:
+  matchSelector: {}
+  filename: 99_multipathd.yaml
+  contents: |
+    stages:
+      network:
+      - name: "Configure multipathd"
+        files:
+        - path: /etc/multipath.conf
+          content: |
+            defaults {
+                polling_interval 5
+                checker_timeout 15
+                 disable_changed_wwids yes  # [VERIFIED] Supported and recommended in modern SLE Micro / SLES multipath-tools.
+                 find_multipaths no
+             }
+             # NOTE: This multipath.conf stanza is strictly for SCSI-based protocols (iSCSI and Fibre Channel).
+             # For NVMe-oF (NVMeTCP / NVMeFC), do NOT add NVMe devices to multipath.conf. Instead, use Linux
+             # native NVMe multipathing (enabled via kernel parameter nvme_core.multipath=Y, default on SLES/SLE Micro).
+             blacklist {
+                device {
+                    vendor "!EMC"
+                    product "!LUN"
+                }
+            }
+            blacklist_exceptions {
+                device {
+                    vendor "EMC"
+                    product "LUN"
+                }
+            }
+            devices {
+                device {
+                    vendor DellEMC
+                    product PowerStore
+                    detect_prio "yes"
+                    path_selector "queue-length 0"
+
+                    path_grouping_policy "group_by_prio"
+                    path_checker tur
+                    failback immediate
+                    fast_io_fail_tmo 5
+                    no_path_retry 3
+                    rr_min_io_rq 1
+                    max_sectors_kb 1024
+                    dev_loss_tmo 10
+                    hardware_handler "1 alua"
+                }
+                device {
+                    vendor .*
+                    product dellemc-powerstore
+                    uid_attribute ID_WWN
+                    prio ana
+                    failback immediate
+                    path_grouping_policy "group_by_prio"
+                    path_checker "none"
+                    path_selector "queue-length 0"
+                    detect_prio "yes"
+                    fast_io_fail_tmo 5
+                    no_path_retry 3
+                    rr_min_io_rq 1
+                    max_sectors_kb 1024
+                    dev_loss_tmo 10
+                }
+            }
+          permissions: 0744
+      - name: "Start multipathd service"
+        systemctl:
+          enable:
+          - multipathd
+          start:
+          - multipathd

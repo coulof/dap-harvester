@@ -1,0 +1,60 @@
+# Harvester install config — hv-node-001 (FIRST NODE, creates the cluster)
+
+scheme_version: 1
+
+# Must be empty in CREATE mode.
+server_url: ""
+
+# Shared cluster secret — provide via secure channel, not committed here.
+# Must be byte-for-byte identical across all 6 node config files.
+token: "<TOKEN>"
+
+os:
+  hostname: "hv-node-001.ati.gov.et"
+
+  ssh_authorized_keys:
+    - "<SSH_PUBLIC_KEY>"
+
+  dns_nameservers:
+    - "10.1.10.30"
+    - "10.1.10.40"
+
+  ntp_servers:
+    - "10.1.10.30"
+
+  password: "<INITIAL_ROOT_PASSWORD>"
+
+install:
+  mode: create
+
+  device: "/dev/nvme0n1"          # REVIEW: OS disk — provided directly by customer, not in the questionnaire
+  data_disk: "/dev/nvme1n1"       # REVIEW: Longhorn data disk — same caveat as device above, please confirm
+
+  # --- Management network: one 802.3ad (LACP) bond carrying 4 tagged VLANs ---
+  # VLAN 176 (mgmt) + 177 (storage) + 172 & 175 (VM/tenant) all ride the same
+  # 2-port bond, so they share one Harvester Cluster Network resource
+  # — which Harvester names "mgmt" by default — and therefore one MTU.
+  #
+  # NOTE: Harvester can't do per-VLAN (MTU is set once per Cluster Network)
+  # — so the WHOLE bond runs at 9000; VM guests can still send standard
+  # 1500-byte frames internally, the bond MTU is only a ceiling. This block
+  # must be IDENTICAL (bar `ip`) across all 6 node config files.
+  management_interface:
+    method: static
+    ip: "10.1.140.21"
+    subnet_mask: "255.255.255.0"
+    gateway: "10.1.140.1"
+    vlan_id: 176
+    mtu: 9000
+    interfaces:
+      - name: "<NIC1>"   # not in questionnaire — confirm actual NIC names on-site (ip link)
+      - name: "<NIC2>"
+    bond_options:
+      mode: 802.3ad
+      miimon: 100
+
+  # --- Cluster VIP (management endpoint) ---
+  # FQDN harvester.ati.gov.et — forward/reverse DNS already confirmed (Network
+  # sheet, item A32). Joining nodes point at this via server_url.
+  vip: "10.1.140.20"
+  vip_mode: static

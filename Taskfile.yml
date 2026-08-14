@@ -1,0 +1,56 @@
+version: "3"
+
+# Root Taskfile for DAP Blueprint Linting & Validation using dap-bpa CLI
+
+vars:
+  BLUEPRINTS_DIR: blueprints
+
+tasks:
+  check-deps:
+    desc: "Check if dap-bpa CLI is installed"
+    cmds:
+      - |
+        if command -v dap-bpa >/dev/null 2>&1; then
+          dap-bpa --version
+        else
+          echo "[!] dap-bpa CLI is not installed."
+          echo "    Please download dap-bpa from https://automation.dell.com/catalog/offers/blueprint_assist_macos"
+          echo "    and place it in your PATH."
+          exit 1
+        fi
+
+  lint:
+    desc: "Lint all blueprints with dap-bpa"
+    deps: [check-deps]
+    cmds:
+      - |
+        for bp in {{.BLUEPRINTS_DIR}}/*/; do
+          if [ -f "$bp/blueprint.yaml" ]; then
+            echo "==> Linting $bp ..."
+            dap-bpa blueprint lint --file "$bp/blueprint.yaml" --verify
+          fi
+        done
+
+  validate:
+    desc: "Schema validate all blueprint node templates"
+    deps: [check-deps]
+    cmds:
+      - |
+        for bp in {{.BLUEPRINTS_DIR}}/*/; do
+          if [ -f "$bp/blueprint.yaml" ]; then
+            echo "==> Validating $bp ..."
+            dap-bpa blueprint validate-all --file "$bp/blueprint.yaml"
+          fi
+        done
+
+  visualize:
+    desc: "Generate offline HTML topology visualization with risk analysis"
+    deps: [check-deps]
+    cmds:
+      - |
+        for bp in {{.BLUEPRINTS_DIR}}/*/; do
+          if [ -f "$bp/blueprint.yaml" ]; then
+            echo "==> Visualizing $bp ..."
+            dap-bpa blueprint visualize --file "$bp/blueprint.yaml"
+          fi
+        done

@@ -1,0 +1,8 @@
+apiVersion: harvesterhci.io/v1beta1
+kind: Setting
+metadata:
+  name: csi-driver-config
+value: |
+  csi-powerstore.dellemc.com:
+    volumeSnapshotClassName: powerstore-snapshot
+    backupVolumeSnapshotClassName: powerstore-snapshot

@@ -1,0 +1,37 @@
+# Harvester install config — CREATE mode reference example
+scheme_version: 1
+
+server_url: ""
+token: "<CLUSTER_TOKEN>"
+
+os:
+  hostname: "hv-node-01"
+  ssh_authorized_keys:
+    - "<SSH_PUBLIC_KEY>"
+  dns_nameservers:
+    - "10.100.0.1"
+  ntp_servers:
+    - "0.suse.pool.ntp.org"
+  password: "<INITIAL_ROOT_PASSWORD>"
+
+install:
+  mode: create
+  device: "/dev/sda"
+  data_disk: "/dev/sdb"
+
+  management_interface:
+    method: static
+    ip: "10.100.0.11"
+    subnet_mask: "255.255.255.0"
+    gateway: "10.100.0.1"
+    vlan_id: 100
+    mtu: 1500
+    interfaces:
+      - name: "eth0"
+      - name: "eth1"
+    bond_options:
+      mode: 802.3ad
+      miimon: 100
+
+  vip: "10.100.0.10"
+  vip_mode: static

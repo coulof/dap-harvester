@@ -1,0 +1,46 @@
+# Harvester install config — hv-node-002 (JOINS the existing cluster)
+
+scheme_version: 1
+
+# Mandatory in JOIN mode. Points at the cluster VIP set in
+# config-create-hv-node-001.yaml.
+server_url: "https://harvester.ati.gov.et:443"
+
+# Must match config-create-hv-node-001.yaml exactly.
+token: "<TOKEN>"
+
+os:
+  hostname: "hv-node-002.ati.gov.et"
+
+  ssh_authorized_keys:
+    - "<SSH_PUBLIC_KEY>"
+
+  dns_nameservers:
+    - "10.1.10.30"
+    - "10.1.10.40"
+
+  ntp_servers:
+    - "10.1.10.30"
+
+  password: "<INITIAL_ROOT_PASSWORD>"
+
+install:
+  mode: join
+
+  device: "/dev/nvme0n1"          # REVIEW: OS disk — provided directly by customer, not in the questionnaire
+  data_disk: "/dev/nvme1n1"       # REVIEW: Longhorn data disk — same caveat as device above, please confirm
+
+  # Must be IDENTICAL to config-create-hv-node-001.yaml's management_interface, except `ip`.
+  management_interface:
+    method: static
+    ip: "10.1.140.22"
+    subnet_mask: "255.255.255.0"
+    gateway: "10.1.140.1"
+    vlan_id: 176
+    mtu: 9000
+    interfaces:
+      - name: "<NIC1>"
+      - name: "<NIC2>"
+    bond_options:
+      mode: 802.3ad
+      miimon: 100
