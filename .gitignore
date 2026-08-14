@@ -5,6 +5,8 @@
 
 # Air-gap archives & temporary outputs
 *.tar.zst
+*.tar.gz
+*.tgz
 _hauls/
 
 # Editor / IDE settings

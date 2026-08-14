@@ -1,9 +1,16 @@
 version: "3"
 
-# Root Taskfile for DAP Blueprint Linting & Validation using dap-bpa CLI
+# Root Taskfile for DAP Harvester Stack
+# Orchestrates blueprint validation (dap-bpa), airgap staging (hauler), and release archiving.
+
+includes:
+  airgap:
+    taskfile: airgap/Taskfile.yml
+    dir: airgap
 
 vars:
   BLUEPRINTS_DIR: blueprints
+  ARCHIVE_NAME: dap-harvester.tar.gz
 
 tasks:
   check-deps:
@@ -54,3 +61,9 @@ tasks:
             dap-bpa blueprint visualize --file "$bp/blueprint.yaml"
           fi
         done
+
+  archive:
+    desc: "Create a clean tar.gz release archive of the repository using git archive"
+    cmds:
+      - git archive --format=tar.gz --prefix=dap-harvester/ -o {{.ARCHIVE_NAME}} HEAD
+      - echo "[+] Created release archive {{.ARCHIVE_NAME}}"
