@@ -7,6 +7,9 @@ includes:
   airgap:
     taskfile: airgap/Taskfile.yml
     dir: airgap
+  vmedia:
+    taskfile: provisioning/vmedia/Taskfile.yml
+    dir: provisioning/vmedia
 
 vars:
   BLUEPRINTS_DIR: blueprints

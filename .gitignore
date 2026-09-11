@@ -8,6 +8,11 @@
 *.tar.gz
 *.tgz
 _hauls/
+*.iso
+*.iso.sha512
+
+# Site-specific deployment files
+csc/
 
 # Editor / IDE settings
 .idea/
