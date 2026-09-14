@@ -14,6 +14,10 @@ _hauls/
 # Site-specific deployment files
 csc/
 
+# Python bytecode
+__pycache__/
+*.py[cod]
+
 # Editor / IDE settings
 .idea/
 .vscode/
