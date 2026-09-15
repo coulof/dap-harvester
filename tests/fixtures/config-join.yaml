@@ -1,0 +1,27 @@
+scheme_version: 1
+server_url: "https://10.144.98.240:443"
+token: "0123456789-secret-token"
+
+os:
+  hostname: "hv-join-node"
+  password: "join#password#2026"
+  ssh_authorized_keys:
+    - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJoinKey456 user@domain"
+  dns_nameservers:
+    - "10.144.103.254"
+  ntp_servers:
+    - "0.suse.pool.ntp.org"
+
+install:
+  mode: join
+  device: "/dev/sda"
+  iso_url: "https://releases.rancher.com/harvester/v1.8.2/harvester-v1.8.2-amd64.iso"
+  skipchecks: true
+
+  management_interface:
+    method: static
+    ip: "10.144.98.242"
+    subnet_mask: "255.255.248.0"
+    gateway: "10.144.103.254"
+    interfaces:
+      - name: "eth0"

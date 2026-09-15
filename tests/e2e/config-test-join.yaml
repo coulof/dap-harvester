@@ -1,0 +1,30 @@
+scheme_version: 1
+
+server_url: "https://10.144.98.240:443"
+token: "e2e-cluster-token-secret"
+
+os:
+  hostname: "harvester-test-02"
+  password: "rancher"
+  ssh_authorized_keys:
+    - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFUsj1JqgJPNJJMpWD7En3y7d3jnctUAjY2PkvN1zPi6 baua_@DESKTOP-S32APPK"
+  dns_nameservers:
+    - "10.144.103.254"
+    - "8.8.8.8"
+  ntp_servers:
+    - "0.suse.pool.ntp.org"
+
+install:
+  mode: join
+  device: "/dev/vda"
+  iso_url: "https://releases.rancher.com/harvester/v1.8.2/harvester-v1.8.2-amd64.iso"
+  skipchecks: true
+
+  management_interface:
+    interfaces:
+      - name: "enp1s0"
+    method: static
+    ip: "10.144.98.242"
+    subnet_mask: "255.255.248.0"
+    gateway: "10.144.103.254"
+    default_route: true

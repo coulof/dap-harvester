@@ -10,6 +10,9 @@ includes:
   vmedia:
     taskfile: provisioning/vmedia/Taskfile.yml
     dir: provisioning/vmedia
+  test:
+    taskfile: tests/Taskfile.yml
+    dir: tests
 
 vars:
   BLUEPRINTS_DIR: blueprints

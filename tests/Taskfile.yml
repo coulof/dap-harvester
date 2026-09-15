@@ -1,0 +1,67 @@
+version: "3"
+
+# Taskfile for Harvester End-to-End (E2E) Nested Deployment Testing
+
+vars:
+  SOURCE_ISO: '{{.SOURCE_ISO | default "../harvester-v1.8.2-amd64.iso"}}'
+  TEST_CONFIG: "e2e/config-test-create.yaml"
+  TEST_ISO: "e2e/harvester-v1.8.2-e2e-create.iso"
+  IMAGE_NAME: '{{.IMAGE_NAME | default "e2e-test-iso"}}'
+  VM_NAME: '{{.VM_NAME | default "test-harvester-sample-01"}}'
+  VIP: '{{.VIP | default "10.144.98.240"}}'
+  NODE_IP: '{{.NODE_IP | default "10.144.98.241"}}'
+
+tasks:
+  unit:
+    desc: "Run unit and golden-file test suite for provisioning scripts"
+    cmds:
+      - make -C ../provisioning/vmedia test
+
+  build-iso:
+    desc: "Build test ISO with baked-in address plan (10.144.98.240/241)"
+    cmds:
+      - |
+        ../provisioning/vmedia/remaster-iso.sh \
+          --source-iso {{.SOURCE_ISO}} \
+          --config-file {{.TEST_CONFIG}} \
+          --mode create \
+          --output-iso {{.TEST_ISO}}
+
+  upload-image:
+    desc: "Build and stream test ISO directly on hosting Harvester (op-prg2, namespace florian)"
+    cmds:
+      - ./e2e/remote-build-and-upload.sh {{.IMAGE_NAME}} config-test-create.yaml create
+
+  upload-join-image:
+    desc: "Build and stream JOIN test ISO directly on hosting Harvester (op-prg2)"
+    cmds:
+      - ./e2e/remote-build-and-upload.sh e2e-test-iso-join config-test-join.yaml join
+
+  deploy-vm:
+    desc: "Deploy nested Harvester sample VM on hosting Harvester"
+    cmds:
+      - ./e2e/deploy-test-vm.sh {{.VM_NAME}} {{.IMAGE_NAME}}
+
+  deploy-join-vm:
+    desc: "Deploy nested Harvester sample JOIN VM on hosting Harvester"
+    cmds:
+      - ./e2e/deploy-test-vm.sh test-harvester-sample-02 e2e-test-iso-join
+
+  verify:
+    desc: "Wait for nested Harvester control plane (VIP) to report Healthy (200 OK)"
+    cmds:
+      - ./e2e/verify-cluster.sh {{.VIP}} {{.NODE_IP}}
+
+  clean:
+    desc: "Teardown test VM and PVCs on hosting Harvester"
+    cmds:
+      - ./e2e/teardown.sh {{.VM_NAME}} {{.IMAGE_NAME}}
+      - rm -f {{.TEST_ISO}} {{.TEST_ISO}}.sha512
+
+  e2e:
+    desc: "Full automated E2E test: build ISO -> upload -> deploy VM -> verify readiness"
+    cmds:
+      - task: build-iso
+      - task: upload-image
+      - task: deploy-vm
+      - task: verify

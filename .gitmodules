@@ -1,0 +1,3 @@
+[submodule "provisioning/vmedia"]
+	path = provisioning/vmedia
+	url = https://github.com/coulof/harvester-iso-remaster.git
